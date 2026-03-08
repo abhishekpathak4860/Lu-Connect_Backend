@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id                   String   @id @default(uuid()) @db.Uuid
+  created_at           DateTime @default(now())
+  company_name         String
+  role                 String
+  location             String
+  package              String
+  eligibility_criteria String
+  description          String
+  application_deadline DateTime
+
+  applications Application[]
+}
+
+model Application {
+  id         String   @id @default(uuid()) @db.Uuid
+  created_at DateTime @default(now())
+
+  job_id String @db.Uuid
+  job    Job    @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  name       String
+  email      String
+  phone      String
+  resume_url String
+
+  compatibility_score Int?
+  matching_skills     Json?
+  missing_skills      Json?
+}
+
+model User {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique
+  email     String   @unique
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+
+  // Common fields
+  firstName   String?
+  middleName  String?
+  lastName    String?
+
+  // Student specific fields
+  location            String?
+  primaryRole         String?
+  experienceYears     Int?
+  openToRoles         String[] // JSON array of roles
+  bio                 String?
+  website             String?
+  linkedin            String?
+  github              String?
+  twitter             String?
+  workExperience      Json? // JSON array of work experiences
+  education           Json? // JSON array of education
+  skills              String[] // JSON array of skills
+  achievements        String?
+  pronouns            String?
+  genderIdentity      String?
+  resumeUrl           String?
+
+  // TPC specific fields
+  designation         String?
+
+  // Company specific fields
+  companyName         String?
+  companyLocation     String?
+}
+
+enum Role {
+  STUDENT
+  COMPANY
+  TPC
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,76 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  HttpException,
+  HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createClient } from '@supabase/supabase-js';
+import { ApplicationsService } from './applications.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { SubmitApplicationDto } from './dto/submit-application.dto';
+import { UploadResumeDto } from './dto/upload-resume.dto';
+
+@Controller('applications')
+export class ApplicationsController {
+  constructor(private applicationsService: ApplicationsService) {}
+
+  @Post()
+  @UseInterceptors(FileInterceptor('resume'))
+  async submit(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: SubmitApplicationDto,
+  ) {
+    const { jobId, name, email, phone } = body;
+    if (!jobId || !name || !email || !phone || !file) {
+      throw new BadRequestException('Missing required fields or resume file');
+    }
+
+    const supabase = createClient(
+      process.env.SUPABASE_URL || '',
+      process.env.SUPABASE_ANON_KEY || '',
+    );
+
+    // upload resume to supabase
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `resumes/${jobId}/${fileName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('resumes')
+      .upload(filePath, file.buffer, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Upload Error:', uploadError);
+      throw new HttpException('Failed to upload resume', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('resumes')
+      .getPublicUrl(filePath);
+
+    const application = await this.applicationsService.create({
+      job_id: jobId,
+      name,
+      email,
+      phone,
+      resume_url: publicUrl,
+    });
+    return { success: true, application };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getAll() {
+    return { applications: await this.applicationsService.findAllWithJob() };
+  }
+}
