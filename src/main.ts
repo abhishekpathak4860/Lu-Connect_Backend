@@ -8,9 +8,9 @@ async function bootstrap() {
 
   // allow frontend to send credentials (cookies)
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    ],
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 

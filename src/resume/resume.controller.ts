@@ -2,10 +2,12 @@ import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, B
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResumeService } from './resume.service';
 import { CheckCompatibilityDto } from './dto/check-compatibility.dto';
+import type { Express } from 'express';
+import type { Multer } from 'multer';
 
 @Controller('resume')
 export class ResumeController {
-  constructor(private resumeService: ResumeService) {}
+  constructor(private resumeService: ResumeService) { }
 
   @Post('analyze')
   @UseInterceptors(FileInterceptor('resume'))
