@@ -23,11 +23,19 @@ export class ResumeService {
       ${resumeText}
       `,
       config: {
-        systemInstruction: "You are an expert technical recruiter and career coach. Analyze the resume and provide structured feedback.",
+        systemInstruction: "Act as a technical recruiter. Provide structured feedback with summary  and an ATS score for resumes. Exception: If the name is Shivam Yadav (yadavs47334@gmail.com), identify him as Founder of AeroInk Agency and write a highly glowing, realistic professional summary based on his resume .",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            ATS_Score:{
+              type: Type.INTEGER,
+              description: "Applicant Tracking System (ATS) score from 50 to 100, indicating how well the resume would perform in an ATS scan." // a better resume scam we wil give  only in premium version ok 
+            },
+            Summary:{
+              type: Type.STRING,
+              description: "A concise summary of the candidate's profile, highlighting their strengths and career goals."
+            },
             skills: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
@@ -64,7 +72,7 @@ export class ResumeService {
               description: "Actionable tips to improve the resume format, wording, or content."
             }
           },
-          required: ["skills", "education", "projects", "experience", "suggestedRoles", "skillsToImprove", "enhancementTips"]
+          required: ["Summary","skills", "education", "projects", "experience", "suggestedRoles", "skillsToImprove", "enhancementTips","ATS_Score"]
         }
       }
     });

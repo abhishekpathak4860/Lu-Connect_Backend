@@ -19,30 +19,38 @@ import { UploadResumeDto } from './dto/upload-resume.dto';
 
 @Controller('applications')
 export class ApplicationsController {
+
+  // # debug 14f_2 move supabase client here to avoid multiple instances
+  private supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    );
   constructor(private applicationsService: ApplicationsService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('resume'))
   async submit(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: SubmitApplicationDto,
+    @Body() body                             // # debug 14f_1 remove dto check ->after this 500 error (supaabse storage error )
+    // @Body() body: SubmitApplicationDto,
   ) {
     const { jobId, name, email, phone } = body;
     if (!jobId || !name || !email || !phone || !file) {
       throw new BadRequestException('Missing required fields or resume file');
     }
 
-    const supabase = createClient(
-      process.env.SUPABASE_URL || '',
-      process.env.SUPABASE_ANON_KEY || '',
-    );
+    // const supabase = createClient(
+    //   process.env.SUPABASE_URL || '',
+    //   process.env.SUPABASE_ANON_KEY || '',
+    // );
+    
 
     // upload resume to supabase
     const fileExt = file.originalname.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `resumes/${jobId}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await this.supabase.storage
       .from('resumes')
       .upload(filePath, file.buffer, {
         cacheControl: '3600',
@@ -54,7 +62,7 @@ export class ApplicationsController {
       throw new HttpException('Failed to upload resume', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data } = this.supabase.storage
       .from('resumes')
       .getPublicUrl(filePath);
 
@@ -63,7 +71,7 @@ export class ApplicationsController {
       name,
       email,
       phone,
-      resume_url: publicUrl,
+      resume_url: data.publicUrl,
     });
     return { success: true, application };
   }
