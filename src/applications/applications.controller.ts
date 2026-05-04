@@ -16,15 +16,21 @@ import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SubmitApplicationDto } from './dto/submit-application.dto';
 import { UploadResumeDto } from './dto/upload-resume.dto';
+import WebSocket from 'ws';
 
 @Controller('applications')
 export class ApplicationsController {
 
   // # debug 14f_2 move supabase client here to avoid multiple instances
-  private supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!
-    );
+ private supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!,
+  {
+    realtime: {
+      transport: WebSocket as any,
+    },
+  }
+);
   constructor(private applicationsService: ApplicationsService) {}
 
   @Post()

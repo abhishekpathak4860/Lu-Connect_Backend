@@ -2,13 +2,20 @@ import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, B
 import { UploadResumeDto } from './dto/upload-resume.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 
 @Controller('upload-resume')
 export class UploadController {
+
   private supabase = createClient(
-    process.env.SUPABASE_URL || '',
-    process.env.SUPABASE_ANON_KEY || ''
-  );
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!,
+  {
+    realtime: {
+      transport: WebSocket as any,
+    },
+  }
+);
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
