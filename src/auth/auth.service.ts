@@ -25,7 +25,7 @@ export class AuthService {
   async login(admin: any) {
     const payload = { sub: admin.id, email: admin.email }; // you can add role
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),// jwt getting created
     };
   }
 }

@@ -23,7 +23,7 @@ export class AppService {
     // pdf-parse is a function that returns an object containing text/metadata
     const textResult = await pdfParse(file.buffer as Buffer);
     // pages property might not exist depending on layout; parse text directly
-    const resumeText = textResult.text || '';
+    const resumeText = textResult.text || ''
 
     if (!resumeText || resumeText.trim() === '') {
       throw new BadRequestException('Could not extract text from the PDF');
