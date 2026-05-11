@@ -2,6 +2,7 @@ import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, B
 import { UploadResumeDto } from './dto/upload-resume.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createClient } from '@supabase/supabase-js';
+import type { Express } from 'express';
 import WebSocket from 'ws';
 
 @Controller('upload-resume')

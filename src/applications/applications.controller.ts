@@ -16,6 +16,7 @@ import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SubmitApplicationDto } from './dto/submit-application.dto';
 import { UploadResumeDto } from './dto/upload-resume.dto';
+import type { Express } from 'express';
 import WebSocket from 'ws';
 
 @Controller('applications')

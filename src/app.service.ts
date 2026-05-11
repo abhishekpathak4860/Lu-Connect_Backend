@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { GoogleGenAI, Type } from '@google/genai';
-// import { Express } from 'express';
+import type { Express } from 'express';
 // pdf-parse doesn't expose a callable default export in TS definitions;
 // using require to get a function reference.
 const pdfParse = require('pdf-parse');
