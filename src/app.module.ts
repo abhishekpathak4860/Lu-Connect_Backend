@@ -7,9 +7,10 @@ import { JobsModule } from './jobs/jobs.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { ResumeModule } from './resume/resume.module';
 import { HrPrepModule } from './hr-prep/hr-prep.module';
+import { StudentAuthModule } from './student-auth/student-auth.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, JobsModule, ApplicationsModule, ResumeModule, HrPrepModule],
+  imports: [PrismaModule, AuthModule, JobsModule, ApplicationsModule, ResumeModule, HrPrepModule, StudentAuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

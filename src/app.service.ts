@@ -8,7 +8,7 @@ const pdfParse = require('pdf-parse');
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Hello World!';
+    return 'Hello World';
   }
 
   /**
@@ -37,7 +37,7 @@ export class AppService {
     const ai = new GoogleGenAI({ apiKey });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: `Analyze the following resume text and extract key information.
       
       Resume Text:

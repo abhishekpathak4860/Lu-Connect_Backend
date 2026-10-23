@@ -16,7 +16,7 @@ export class ResumeService {
     const resumeText = textResult.pages.map(p => p.text).join('\n');
 
     const response = await this.ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: `Analyze the following resume text and extract key information.
       
       Resume Text:
@@ -86,7 +86,7 @@ export class ResumeService {
     const resumeText = textResult.pages.map(p => p.text).join('\n');
 
     const response = await this.ai.models.generateContent({
-      model: 'gemini-3.1-pro-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: `Compare the following resume against the job description.
       
       Job Role: ${job.role}

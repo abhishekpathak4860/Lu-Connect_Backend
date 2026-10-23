@@ -11,7 +11,7 @@ export class HrPrepService {
 
   async generateQuestions(company: string) {
     const response = await this.ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: `Generate 3 realistic HR/Behavioral interview questions that a candidate might face when interviewing at ${company}. Make them specific to the culture and values of ${company} if possible.`,
       config: {
         systemInstruction: "You are an expert technical recruiter.",
@@ -40,7 +40,7 @@ Candidate's Answer: ${a.answer}
     `).join('\n');
 
     const response = await this.ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-2.5-flash-lite',
       contents: `Evaluate the following HR interview answers for a candidate interviewing at ${company}.
       
       ${formattedAnswers}
