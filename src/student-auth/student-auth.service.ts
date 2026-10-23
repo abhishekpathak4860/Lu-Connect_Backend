@@ -63,4 +63,16 @@ export class StudentAuthService {
       );
     }
   }
+
+  async findStudentByClerkId(clerkId: string) {
+  const student = await this.prisma.user.findUnique({
+    where: { clerkId },
+  });
+
+  if (!student || student.role !== 'STUDENT') {
+    throw new UnauthorizedException('Student account not found');
+  }
+
+  return student;
+}
 }

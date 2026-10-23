@@ -1,5 +1,7 @@
-import { Controller, Headers, Post, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Headers, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { StudentAuthService } from './student-auth.service';
+import { CurrentStudent } from './decorators/current-student.decorator';
+import { StudentAuthGuard } from './student-auth/student-auth.guard';
 
 @Controller('student-auth')
 export class StudentAuthController {
@@ -15,4 +17,9 @@ export class StudentAuthController {
     return this.studentAuthService.verifyStudentToken(token);
   }
 
+@Get('me')
+@UseGuards(StudentAuthGuard)
+getMe(@CurrentStudent() student: { id: string; clerkId: string; email: string; role: string }) {
+  return student;
+}
 }
