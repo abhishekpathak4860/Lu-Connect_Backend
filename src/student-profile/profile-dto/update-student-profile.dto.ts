@@ -60,9 +60,11 @@ export class UpdateStudentProfileDto {
   twitter?: string;
 
   @IsOptional()
+  @IsArray()
   workExperience?: object[];
 
   @IsOptional()
+  @IsArray()
   education?: object[];
 
   @IsOptional()

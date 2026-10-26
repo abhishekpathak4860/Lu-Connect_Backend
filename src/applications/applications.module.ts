@@ -7,6 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   providers: [ApplicationsService],
-  controllers: [ApplicationsController, UploadController],
+  controllers: [ ApplicationsController,UploadController],
 })
 export class ApplicationsModule {}
