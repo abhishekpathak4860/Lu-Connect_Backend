@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateStudentProfileDto } from './profile-dto/update-student-profile.dto';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
-
+import type { Express } from 'express';
 import ws from 'ws';
 @Injectable()
 export class StudentProfileService {
