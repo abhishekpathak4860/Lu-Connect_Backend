@@ -15,7 +15,8 @@ import {
 import { JobsService } from "./jobs.service";
 
 import { CreateJobDto } from "./dto/create-job.dto";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
 
 @Controller("jobs")
 export class JobsController {
