@@ -19,14 +19,21 @@ model Job {
   application_deadline DateTime
 
   applications Application[]
+
+  @@index([created_at(sort: Desc)])
 }
 
 model Application {
   id         String   @id @default(uuid()) @db.Uuid
   created_at DateTime @default(now())
 
+  // Job relationship: one job can receive many applications
   job_id String @db.Uuid
   job    Job    @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  // Student relationship: one student can submit many applications
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   name       String
   email      String
@@ -36,6 +43,10 @@ model Application {
   compatibility_score Int?
   matching_skills     Json?
   missing_skills      Json?
+
+  @@unique([user_id, job_id])
+  @@index([job_id, created_at(sort: Desc)])
+  @@index([user_id, created_at(sort: Desc)])
 }
 
 model User {
@@ -51,29 +62,32 @@ model User {
   lastName    String?
 
   // Student specific fields
-  location            String?
-  primaryRole         String?
-  experienceYears     Int?
-  openToRoles         String[] // JSON array of roles
-  bio                 String?
-  website             String?
-  linkedin            String?
-  github              String?
-  twitter             String?
-  workExperience      Json? // JSON array of work experiences
-  education           Json? // JSON array of education
-  skills              String[] // JSON array of skills
-  achievements        String?
-  pronouns            String?
-  genderIdentity      String?
-  resumeUrl           String?
+  location        String?
+  primaryRole     String?
+  experienceYears Int?
+  openToRoles     String[]
+  bio             String?
+  website         String?
+  linkedin        String?
+  github          String?
+  twitter         String?
+  workExperience  Json?
+  education       Json?
+  skills          String[]
+  achievements    String?
+  pronouns        String?
+  genderIdentity  String?
+  resumeUrl       String?
 
   // TPC specific fields
-  designation         String?
+  designation String?
 
   // Company specific fields
-  companyName         String?
-  companyLocation     String?
+  companyName     String?
+  companyLocation String?
+
+  // Applications submitted by this student
+  applications Application[]
 }
 
 enum Role {

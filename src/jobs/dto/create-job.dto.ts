@@ -3,28 +3,28 @@ import { IsString, IsDateString, IsNotEmpty } from 'class-validator';
 export class CreateJobDto {
   @IsString()
   @IsNotEmpty()
-  company_name: string;
+  company_name!: string;
 
   @IsString()
   @IsNotEmpty()
-  role: string;
+  role!: string;
 
   @IsString()
   @IsNotEmpty()
-  location: string;
+  location!: string;
 
   @IsString()
   @IsNotEmpty()
-  package: string;
+  package!: string;
 
   @IsString()
   @IsNotEmpty()
-  eligibility_criteria: string;
+  eligibility_criteria!: string;
 
   @IsString()
   @IsNotEmpty()
-  description: string;
+  description!: string;
 
   @IsDateString()
-  application_deadline: string;
+  application_deadline!: string;
 }

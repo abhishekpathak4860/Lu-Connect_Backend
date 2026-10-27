@@ -1,91 +1,191 @@
 import {
-  Controller,
-  Post,
-  Get,
+  BadRequestException,
   Body,
-  UseGuards,
+  Controller,
+  Get,
   HttpException,
   HttpStatus,
+  Post,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createClient } from '@supabase/supabase-js';
+import { Request } from 'express';
+import type { Express } from 'express';
 import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { SubmitApplicationDto } from './dto/submit-application.dto';
-import { UploadResumeDto } from './dto/upload-resume.dto';
-import type { Express } from 'express';
-import WebSocket from 'ws';
+import { StudentAuthGuard } from 'src/student-auth/student-auth/student-auth.guard';
+import ws from 'ws';
 
 @Controller('applications')
 export class ApplicationsController {
-
-  // # debug 14f_2 move supabase client here to avoid multiple instances
- private supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!,
-  {
-    realtime: {
-      transport: WebSocket as any,
+  private readonly supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      realtime: {
+        transport: ws,
+      },
     },
-  }
-);
-  constructor(private applicationsService: ApplicationsService) {}
+  );
+
+  constructor(
+    private readonly applicationsService: ApplicationsService,
+  ) {}
 
   @Post()
+  @UseGuards(StudentAuthGuard)
   @UseInterceptors(FileInterceptor('resume'))
   async submit(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body                             // # debug 14f_1 remove dto check ->after this 500 error (supaabse storage error )
-    // @Body() body: SubmitApplicationDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Body()
+    body: {
+      jobId: string;
+      name: string;
+      email: string;
+      phone: string;
+      compatibilityScore?: string;
+      matchingSkills?: string;
+      missingSkills?: string;
+    },
+    @Req() req: Request & { student: { id: string } },
   ) {
     const { jobId, name, email, phone } = body;
-    if (!jobId || !name || !email || !phone || !file) {
-      throw new BadRequestException('Missing required fields or resume file');
+
+    if (!jobId || !name?.trim() || !email?.trim() || !phone?.trim()) {
+      throw new BadRequestException(
+        'Job ID, name, email, and phone are required',
+      );
     }
 
-    // const supabase = createClient(
-    //   process.env.SUPABASE_URL || '',
-    //   process.env.SUPABASE_ANON_KEY || '',
-    // );
-    
+    // A replacement resume is optional if the student already has one saved.
+    if (file) {
+      if (file.mimetype !== 'application/pdf') {
+        throw new BadRequestException('Only PDF resumes are allowed');
+      }
 
-    // upload resume to supabase
-    const fileExt = file.originalname.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `resumes/${jobId}/${fileName}`;
+      if (file.size > 5 * 1024 * 1024) {
+        throw new BadRequestException('Resume must be 5MB or smaller');
+      }
+    }
 
-    const { error: uploadError } = await this.supabase.storage
-      .from('resumes')
-      .upload(filePath, file.buffer, {
-        cacheControl: '3600',
-        upsert: false,
+    let resumeUrl: string | null = null;
+    let uploadedFilePath: string | null = null;
+
+    if (file) {
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.pdf`;
+
+      uploadedFilePath =
+        `applications/${req.student.id}/${jobId}/${fileName}`;
+
+      const { error: uploadError } = await this.supabase.storage
+        .from('resumes')
+        .upload(uploadedFilePath, file.buffer, {
+          contentType: 'application/pdf',
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Resume upload failed:', uploadError.message);
+        throw new HttpException(
+          'Failed to upload resume',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const { data } = this.supabase.storage
+        .from('resumes')
+        .getPublicUrl(uploadedFilePath);
+
+      resumeUrl = data.publicUrl;
+    } else {
+      // Never accept a saved resume URL from the client.
+      resumeUrl = await this.applicationsService.getStudentResumeUrl(
+        req.student.id,
+      );
+    }
+
+    if (!resumeUrl) {
+      throw new BadRequestException(
+        'Please upload a PDF resume before applying.',
+      );
+    }
+
+    let matchingSkills: string[] | undefined;
+    let missingSkills: string[] | undefined;
+    let compatibilityScore: number | undefined;
+
+    try {
+      if (body.compatibilityScore) {
+        const score = Number(body.compatibilityScore);
+
+        if (!Number.isInteger(score) || score < 0 || score > 100) {
+          throw new BadRequestException('Invalid compatibility score');
+        }
+
+        compatibilityScore = score;
+      }
+
+      if (body.matchingSkills) {
+        matchingSkills = JSON.parse(body.matchingSkills);
+        if (!Array.isArray(matchingSkills)) {
+          throw new BadRequestException('Invalid matching skills');
+        }
+      }
+
+      if (body.missingSkills) {
+        missingSkills = JSON.parse(body.missingSkills);
+        if (!Array.isArray(missingSkills)) {
+          throw new BadRequestException('Invalid missing skills');
+        }
+      }
+
+      const application = await this.applicationsService.create({
+        job_id: jobId,
+        user_id: req.student.id,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        resume_url: resumeUrl,
+        ...(compatibilityScore !== undefined && {
+          compatibility_score: compatibilityScore,
+        }),
+        ...(matchingSkills !== undefined && {
+          matching_skills: matchingSkills,
+        }),
+        ...(missingSkills !== undefined && {
+          missing_skills: missingSkills,
+        }),
       });
 
-    if (uploadError) {
-      console.error('Upload Error:', uploadError);
-      throw new HttpException('Failed to upload resume', HttpStatus.INTERNAL_SERVER_ERROR);
+      return { success: true, application };
+    } catch (error) {
+      // Remove the newly uploaded file if the database operation fails.
+      if (uploadedFilePath) {
+        await this.supabase.storage
+          .from('resumes')
+          .remove([uploadedFilePath]);
+      }
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw error;
     }
-
-    const { data } = this.supabase.storage
-      .from('resumes')
-      .getPublicUrl(filePath);
-
-    const application = await this.applicationsService.create({
-      job_id: jobId,
-      name,
-      email,
-      phone,
-      resume_url: data.publicUrl,
-    });
-    return { success: true, application };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   async getAll() {
-    return { applications: await this.applicationsService.findAllWithJob() };
+    return {
+      applications: await this.applicationsService.findAllWithJob(),
+    };
   }
 }

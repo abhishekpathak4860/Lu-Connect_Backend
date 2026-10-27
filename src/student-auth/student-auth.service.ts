@@ -75,4 +75,28 @@ export class StudentAuthService {
 
   return student;
 }
+
+async getApplicationProfile(studentId: string) {
+  const student = await this.prisma.user.findFirst({
+    where: {
+      id: studentId,
+      role: 'STUDENT',
+    },
+    select: {
+      firstName: true,
+      middleName: true,
+      lastName: true,
+      email: true,
+      experienceYears: true,
+      resumeUrl: true,
+    },
+  });
+
+  if (!student) {
+    throw new UnauthorizedException('Student account not found');
+  }
+
+  return { profile: student };
+}
+
 }

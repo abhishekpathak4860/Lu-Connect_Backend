@@ -1,36 +1,48 @@
+
 import {
   Controller,
   Get,
   Post,
-  Body,
   Param,
-  UseGuards,
+  Body,
   HttpException,
   HttpStatus,
-} from '@nestjs/common';
-import { JobsService } from './jobs.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CreateJobDto } from './dto/create-job.dto';
+  UseGuards,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+} from "@nestjs/common";
+import { JobsService } from "./jobs.service";
 
-@Controller('jobs')
+import { CreateJobDto } from "./dto/create-job.dto";
+import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+
+@Controller("jobs")
 export class JobsController {
-  constructor(private jobsService: JobsService) {}
+  constructor(private readonly jobsService: JobsService) {}
 
   @Get()
-  async getAll() {
-    return { jobs: await this.jobsService.findAll() };
+  async getAll(
+    @Query("page", new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query("limit", new DefaultValuePipe(10), ParseIntPipe)
+    limit: number,
+  ) {
+    return this.jobsService.findAll(page, limit);
   }
 
-  @Get(':id')
-  async getOne(@Param('id') id: string) {
+  @Get(":id")
+  async getOne(@Param("id") id: string) {
     const job = await this.jobsService.findOne(id);
+
     if (!job) {
-      throw new HttpException('Job not found', HttpStatus.NOT_FOUND);
+      throw new HttpException("Job not found", HttpStatus.NOT_FOUND);
     }
+
     return { job };
   }
 
-  // only admin/TPC
+  // Only authenticated users with the appropriate authorization should create jobs.
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() body: CreateJobDto) {

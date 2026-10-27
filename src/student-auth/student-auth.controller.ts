@@ -22,4 +22,12 @@ export class StudentAuthController {
 getMe(@CurrentStudent() student: { id: string; clerkId: string; email: string; role: string }) {
   return student;
 }
+@Get('application-profile')
+@UseGuards(StudentAuthGuard)
+getApplicationProfile(
+  @CurrentStudent() student: { id: string },
+) {
+  return this.studentAuthService.getApplicationProfile(student.id);
+}
+
 }
