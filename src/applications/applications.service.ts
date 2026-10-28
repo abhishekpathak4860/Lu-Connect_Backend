@@ -54,4 +54,47 @@ export class ApplicationsService {
       },
     });
   }
+
+  async findMyApplications(
+  studentId: string,
+  page: number,
+  limit: number,
+) {
+  const where = { user_id: studentId };
+
+  const [applications, total] = await this.prisma.$transaction([
+    this.prisma.application.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        created_at: true,
+        status: true,
+        compatibility_score: true,
+        job: {
+          select: {
+            id: true,
+            company_name: true,
+            role: true,
+            location: true,
+            package: true,
+          },
+        },
+      },
+    }),
+    this.prisma.application.count({ where }),
+  ]);
+
+  return {
+    applications,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
 }

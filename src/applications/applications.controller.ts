@@ -6,6 +6,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -188,4 +189,33 @@ export class ApplicationsController {
       applications: await this.applicationsService.findAllWithJob(),
     };
   }
+
+  @Get('me')
+@UseGuards(StudentAuthGuard)
+async getMyApplications(
+  @Req() req: Request & { student: { id: string } },
+  @Query('page') pageParam = '1',
+  @Query('limit') limitParam = '10',
+) {
+  const page = Number(pageParam);
+  const limit = Number(limitParam);
+
+  if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 20
+  ) {
+    throw new BadRequestException(
+      'Page must be positive and limit must be between 1 and 20',
+    );
+  }
+
+  return this.applicationsService.findMyApplications(
+    req.student.id,
+    page,
+    limit,
+  );
+}
 }

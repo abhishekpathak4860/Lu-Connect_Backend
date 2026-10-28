@@ -3,20 +3,20 @@ import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
 export class SubmitApplicationDto {
   @IsString()
   @IsNotEmpty()
-  jobId: string;
+  jobId!: string;
 
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @IsNotEmpty()
-  phone: string;
+  phone!: string;
 
   // resume_url is set after upload, not supplied by client directly
   @IsString()
-  resume_url: string;
+  resume_url!: string;
 }
