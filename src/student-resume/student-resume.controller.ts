@@ -51,4 +51,24 @@ export class StudentResumeController {
       file,
     );
   }
+
+  @Post('analyze')
+@UseInterceptors(
+  FileInterceptor('resume', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+      files: 1,
+    },
+  }),
+)
+analyzeResume(
+  @Req() req: Request & { student: { id: string } },
+  @UploadedFile() file?: Express.Multer.File,
+) {
+  return this.studentResumeService.analyzeResume(
+    req.student.id,
+    file,
+  );
+}
 }
