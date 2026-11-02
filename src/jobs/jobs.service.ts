@@ -2,6 +2,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Job } from "@prisma/client";
+import { UpdateJobDto } from "./dto/update-job.dto";
 
 @Injectable()
 export class JobsService {
@@ -49,4 +50,17 @@ export class JobsService {
   async create(data: any): Promise<Job> {
     return this.prisma.job.create({ data });
   }
+  async update(id: string, data: UpdateJobDto) {
+  return this.prisma.job.update({
+    where: { id },
+    data,
+  });
+}
+async delete(id:string){
+  return this.prisma.$transaction(async (tx) => {
+    return tx.job.delete({
+      where: { id },
+    });
+  });
+}
 }
