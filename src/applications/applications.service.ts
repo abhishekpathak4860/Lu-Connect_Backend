@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Application } from '@prisma/client';
+import { ApplicationStatus } from "@prisma/client";
 
 @Injectable()
 export class ApplicationsService {
@@ -39,21 +40,100 @@ export class ApplicationsService {
       data: data as any,
     });
   }
+async findAllWithJob(
+  page = 1,
+  limit = 10,
+  status?: ApplicationStatus,
+) {
+  const currentPage = Math.max(1, page);
+  const pageSize = Math.min(Math.max(1, limit), 50);
 
-  async findAllWithJob() {
-    return this.prisma.application.findMany({
-      orderBy: { created_at: 'desc' },
+  const statusFilter = status ? { status } : undefined;
+
+  const [
+    applications,
+    filteredTotalApplications,
+    totalApplications,
+    appliedCount,
+    underReviewCount,
+    shortlistedCount,
+    rejectedCount,
+  ] = await this.prisma.$transaction([
+    this.prisma.application.findMany({
+      where: statusFilter,
+      orderBy: { created_at: "desc" },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
       include: {
         job: {
           select: {
             id: true,
             role: true,
             company_name: true,
+            _count: {
+              select: {
+                applications: true,
+              },
+            },
           },
         },
       },
-    });
-  }
+    }),
+
+    // Count matching the applied filter (for pagination)
+    this.prisma.application.count({
+      where: statusFilter,
+    }),
+
+    // Global application count (for dashboard stats)
+    this.prisma.application.count(),
+
+    this.prisma.application.count({
+      where: { status: "APPLIED" },
+    }),
+
+    this.prisma.application.count({
+      where: { status: "UNDER_REVIEW" },
+    }),
+
+    this.prisma.application.count({
+      where: { status: "SHORTLISTED" },
+    }),
+
+    this.prisma.application.count({
+      where: { status: "REJECTED" },
+    }),
+  ]);
+
+  return {
+    applications,
+
+    stats: {
+      totalApplications,
+      appliedCount,
+      underReviewCount,
+      shortlistedCount,
+      rejectedCount,
+    },
+
+    pagination: {
+      currentPage,
+      limit: pageSize,
+      totalApplications: filteredTotalApplications,
+      totalPages: Math.ceil(filteredTotalApplications / pageSize),
+      hasNextPage: currentPage * pageSize < filteredTotalApplications,
+      hasPreviousPage: currentPage > 1,
+    },
+  };
+}
+
+async updateStatus(id: string, status: ApplicationStatus) {
+  return this.prisma.application.update({
+    where: { id },
+    data: { status },
+  });
+}
+
 
   async findMyApplications(
   studentId: string,

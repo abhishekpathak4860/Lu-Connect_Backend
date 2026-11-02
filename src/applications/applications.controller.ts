@@ -2,9 +2,13 @@ import {
   BadRequestException,
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   HttpException,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -20,6 +24,9 @@ import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { StudentAuthGuard } from 'src/student-auth/student-auth/student-auth.guard';
 import ws from 'ws';
+import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
+import { ApplicationStatus } from "@prisma/client";
+import { ParseEnumPipe } from "@nestjs/common";
 
 @Controller('applications')
 export class ApplicationsController {
@@ -181,14 +188,29 @@ export class ApplicationsController {
       throw error;
     }
   }
+@UseGuards(JwtAuthGuard)
+@Get()
+async getAll(
+  @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
+  @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  @Query(
+    "status",
+    new ParseEnumPipe(ApplicationStatus, { optional: true }),
+  )
+  status?: ApplicationStatus,
+) {
+  return this.applicationsService.findAllWithJob(page, limit, status);
+}
 
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  async getAll() {
-    return {
-      applications: await this.applicationsService.findAllWithJob(),
-    };
-  }
+@UseGuards(JwtAuthGuard)
+@Patch(":id/status")
+async updateStatus(
+  @Param("id") id: string,
+  @Body() dto: UpdateApplicationStatusDto,
+) {
+  return this.applicationsService.updateStatus(id, dto.status);
+}
+
 
   @Get('me')
 @UseGuards(StudentAuthGuard)
