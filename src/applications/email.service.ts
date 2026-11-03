@@ -5,26 +5,23 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private readonly transporter: nodemailer.Transporter;
+  private readonly resend: Resend;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: Number(this.configService.get<string>('SMTP_PORT') || 587),
-      secure:
-        this.configService.get<string>('SMTP_SECURE') === 'true',
-      auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASSWORD'),
-      },
-    });
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
+
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+
+    this.resend = new Resend(apiKey);
   }
 
   async sendShortlistEmail(applicationId: string) {
@@ -55,11 +52,11 @@ export class EmailService {
     const { name, email, job } = application;
 
     const fromName =
-      this.configService.get<string>('SMTP_FROM_NAME') ||
+      this.configService.get<string>('RESEND_FROM_NAME') ||
       'LU Connect Placement Team';
 
     const fromEmail =
-      this.configService.get<string>('SMTP_FROM_EMAIL');
+      this.configService.get<string>('RESEND_FROM_EMAIL');
 
     if (!fromEmail || !email) {
       throw new InternalServerErrorException(
@@ -79,7 +76,7 @@ export class EmailService {
           <tr>
             <td align="center">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;">
-                
+
                 <tr>
                   <td style="padding:28px 32px;background:#1e40af;color:#ffffff;">
                     <h1 style="margin:0;font-size:25px;letter-spacing:1px;">LU.CONNECT</h1>
@@ -176,15 +173,19 @@ export class EmailService {
     `;
 
     try {
-      await this.transporter.sendMail({
-        from: {
-          name: fromName,
-          address: fromEmail,
-        },
-        to: email,
+      const { data, error } = await this.resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [email],
         subject: `Congratulations! You've been shortlisted for ${job.role}`,
         html,
       });
+
+      if (error) {
+        console.error('Resend email error:', error);
+        throw new Error(error.message);
+      }
+
+    //   console.log('Shortlist email sent successfully:', data?.id);
 
       return { success: true };
     } catch (error) {
