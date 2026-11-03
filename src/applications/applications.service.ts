@@ -3,13 +3,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Application } from '@prisma/client';
 import { ApplicationStatus } from "@prisma/client";
 
-
+import { EmailService } from './email.service';
 
 
 @Injectable()
 export class ApplicationsService {
   constructor(private readonly prisma: PrismaService,
-
+ private readonly emailService: EmailService,
   ) {}
 
   async getStudentResumeUrl(studentId: string): Promise<string | null> {
@@ -135,10 +135,32 @@ async findAllWithJob(
 
 
 async updateStatus(id: string, status: ApplicationStatus) {
-  return this.prisma.application.update({
+  const existingApplication = await this.prisma.application.findUnique({
+    where: { id },
+  });
+
+  if (!existingApplication) {
+    throw new NotFoundException('Application not found');
+  }
+
+  const updatedApplication = await this.prisma.application.update({
     where: { id },
     data: { status },
   });
+
+  // Send email only when status changes to SHORTLISTED.
+  if (
+    status === ApplicationStatus.SHORTLISTED &&
+    existingApplication.status !== ApplicationStatus.SHORTLISTED
+  ) {
+    try {
+ await this.emailService.sendShortlistEmail(id);
+    } catch (error) {
+      console.error('Failed to send shortlist email:', error);
+    }
+  }
+
+  return updatedApplication;
 }
 
 

@@ -5,10 +5,11 @@ import { ApplicationsController } from './applications.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StudentAuthModule } from 'src/student-auth/student-auth.module';
 import { AiResumeAnalyzerService } from './ai-resume-analyzer.service';
+import { EmailService } from './email.service';
 
 @Module({
   imports: [PrismaModule,StudentAuthModule],
-  providers: [ApplicationsService,AiResumeAnalyzerService],
+  providers: [ApplicationsService,AiResumeAnalyzerService, EmailService],
   controllers: [ ApplicationsController],
 })
 export class ApplicationsModule {}
