@@ -27,6 +27,7 @@ import ws from 'ws';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { ApplicationStatus } from "@prisma/client";
 import { ParseEnumPipe } from "@nestjs/common";
+import { AiResumeAnalyzerService } from './ai-resume-analyzer.service';
 
 @Controller('applications')
 export class ApplicationsController {
@@ -42,6 +43,7 @@ export class ApplicationsController {
 
   constructor(
     private readonly applicationsService: ApplicationsService,
+     private readonly aiResumeAnalyzerService: AiResumeAnalyzerService,
   ) {}
 
   @Post()
@@ -211,7 +213,11 @@ async updateStatus(
   return this.applicationsService.updateStatus(id, dto.status);
 }
 
-
+@UseGuards(JwtAuthGuard)
+@Post(':id/analyze-resume')
+async analyzeResume(@Param('id') id: string) {
+  return this.aiResumeAnalyzerService.analyzeResumeForJob(id);
+}
   @Get('me')
 @UseGuards(StudentAuthGuard)
 async getMyApplications(

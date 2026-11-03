@@ -3,9 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Application } from '@prisma/client';
 import { ApplicationStatus } from "@prisma/client";
 
+
+
+
 @Injectable()
 export class ApplicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+
+  ) {}
 
   async getStudentResumeUrl(studentId: string): Promise<string | null> {
     const student = await this.prisma.user.findFirst({
@@ -126,6 +131,8 @@ async findAllWithJob(
     },
   };
 }
+
+
 
 async updateStatus(id: string, status: ApplicationStatus) {
   return this.prisma.application.update({
