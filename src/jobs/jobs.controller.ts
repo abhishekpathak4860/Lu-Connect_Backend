@@ -19,6 +19,9 @@ import { JobsService } from "./jobs.service";
 import { CreateJobDto } from "./dto/create-job.dto";
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateJobDto } from "./dto/update-job.dto";
+import { CurrentStudent } from "src/student-auth/decorators/current-student.decorator";
+import type { User } from '@prisma/client';
+import  { StudentAuthGuard } from "src/student-auth/student-auth/student-auth.guard";
 
 
 @Controller("jobs")
@@ -34,6 +37,20 @@ export class JobsController {
   ) {
     return this.jobsService.findAll(page, limit);
   }
+
+// logged in student job fetch
+@UseGuards(StudentAuthGuard)
+@Get('student')
+async getStudentJobs(
+  @CurrentStudent() student: User,
+  @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+  page: number,
+  @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+  limit: number,
+) {
+  return this.jobsService.findAllForStudent(student.id, page, limit);
+}
+
 
   @Get(":id")
   async getOne(@Param("id") id: string) {

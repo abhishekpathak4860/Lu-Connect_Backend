@@ -40,6 +40,47 @@ export class JobsService {
       },
     };
   }
+async findAllForStudent(studentId: string, page = 1, limit = 10) {
+  page = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+  limit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 10;
+
+  const skip = (page - 1) * limit;
+
+  const [jobs, totalJobs] = await this.prisma.$transaction([
+    this.prisma.job.findMany({
+      orderBy: { created_at: "desc" },
+      skip,
+      take: limit,
+      include: {
+        applications: {
+          where: { user_id: studentId },
+          select: { id: true },
+          take: 1,
+        },
+      },
+    }),
+    this.prisma.job.count(),
+  ]);
+
+  const jobsWithApplicationStatus = jobs.map(({ applications, ...job }) => ({
+    ...job,
+    alreadyApplied: applications.length > 0,
+  }));
+
+  const totalPages = Math.ceil(totalJobs / limit);
+
+  return {
+    jobs: jobsWithApplicationStatus,
+    pagination: {
+      currentPage: page,
+      limit,
+      totalJobs,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    },
+  };
+}
 
   async findOne(id: string): Promise<Job | null> {
     return this.prisma.job.findUnique({
