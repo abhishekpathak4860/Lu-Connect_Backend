@@ -88,8 +88,10 @@ model User {
   companyName     String?
   companyLocation String?
 
-  // Applications submitted by this student
+  //job Applications submitted by this student
   applications Application[]
+  //internship Applications submitted by this student
+  internshipApplications InternshipApplication[]
 }
 
 enum Role {
@@ -108,4 +110,56 @@ model Admin {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+}
+
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+model Internship {
+  id                   String   @id @default(uuid()) @db.Uuid
+  created_at           DateTime @default(now())
+
+  company_name         String
+  role                 String
+  location             String
+  work_mode            WorkMode
+  stipend              String
+  duration             String
+
+  eligibility_criteria String
+  required_skills      String[]
+  description          String
+
+  application_deadline DateTime
+  start_date           DateTime?
+
+  applications InternshipApplication[]
+
+  @@index([created_at(sort: Desc)])
+}
+
+model InternshipApplication {
+  id         String   @id @default(uuid()) @db.Uuid
+  created_at DateTime @default(now())
+
+  status ApplicationStatus @default(APPLIED)
+
+  internship_id String     @db.Uuid
+  internship    Internship @relation(fields: [internship_id], references: [id], onDelete: Cascade)
+
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  name       String
+  email      String
+  phone      String
+  resume_url String
+
+  @@unique([user_id, internship_id])
+  @@index([internship_id, created_at(sort: Desc)])
+  @@index([user_id, created_at(sort: Desc)])
 }
