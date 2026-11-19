@@ -88,6 +88,31 @@ async findAllForStudent(studentId: string, page = 1, limit = 10) {
     });
   }
 
+  // Get one job with application status for a specific student
+async findOneForStudent(id: string, studentId: string) {
+  const job = await this.prisma.job.findUnique({
+    where: { id },
+    include: {
+      applications: {
+        where: { user_id: studentId },
+        select: { id: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (!job) {
+    return null;
+  }
+
+  const { applications, ...jobData } = job;
+
+  return {
+    ...jobData,
+    alreadyApplied: applications.length > 0,
+  };
+}
+
   async create(data: any): Promise<Job> {
     return this.prisma.job.create({ data });
   }

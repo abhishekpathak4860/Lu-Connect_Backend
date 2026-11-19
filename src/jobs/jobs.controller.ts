@@ -63,6 +63,27 @@ async getStudentJobs(
     return { job };
   }
 
+  // Logged-in student: Get one job with application status
+@UseGuards(StudentAuthGuard)
+@Get("student/:id")
+async getOneForStudent(
+  @Param("id") id: string,
+  @CurrentStudent() student: User,
+) {
+  const job = await this.jobsService.findOneForStudent(
+    id,
+    student.id,
+  );
+
+  if (!job) {
+    throw new HttpException(
+      "Job not found",
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
+  return { job };
+}
   // Only authenticated users with the appropriate authorization should create jobs.
   @UseGuards(JwtAuthGuard)
   @Post()

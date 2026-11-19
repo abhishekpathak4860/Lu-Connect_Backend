@@ -93,6 +93,30 @@ export class InternshipsService {
     });
   }
 
+  // Get one internship with application status for a specific student
+async findOneForStudent(id: string, studentId: string) {
+  const internship = await this.prisma.internship.findUnique({
+    where: { id },
+    include: {
+      applications: {
+        where: { user_id: studentId },
+        select: { id: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (!internship) {
+    return null;
+  }
+
+  const { applications, ...internshipData } = internship;
+
+  return {
+    ...internshipData,
+    alreadyApplied: applications.length > 0,
+  };
+}
   async create(data: CreateInternshipDto): Promise<Internship> {
     return this.prisma.internship.create({ data });
   }

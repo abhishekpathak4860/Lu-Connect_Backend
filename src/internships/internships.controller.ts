@@ -52,6 +52,26 @@ export class InternshipsController {
     );
   }
 
+    // Logged-in student: Get one internship with application status
+  @UseGuards(StudentAuthGuard)
+  @Get('student/:id')
+  async getOneForStudent(
+    @Param('id') id: string,
+    @CurrentStudent() student: User,
+  ) {
+    const internship =
+      await this.internshipsService.findOneForStudent(id, student.id);
+
+    if (!internship) {
+      throw new HttpException(
+        'Internship not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return { internship };
+  }
+
   // Get one internship
   @Get(':id')
   async getOne(@Param('id') id: string) {
