@@ -1,130 +1,213 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# LU Connect – Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+LU Connect is a career development platform built for students of the **University of Lucknow**. It aims to democratize access to career opportunities and professional development through curated job and internship listings, resume analysis, and AI-powered job compatibility insights.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository contains the **backend application** of LU Connect, responsible for REST APIs, authentication, database operations, file uploads, and AI-powered services.
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Framework:** NestJS
+- **Language:** TypeScript
+- **Database:** PostgreSQL (Neon)
+- **ORM:** Prisma
+- **Authentication:** Clerk JWT verification (Students), JWT (TPC/Admin)
+- **File Storage:** Supabase Storage
+- **AI Integration:** Google Gemini API
+- **Email Services:** SMTP / Resend
 
-## Project setup
+## Project Architecture
+
+LU Connect is maintained in two separate repositories:
+
+| Repository | Responsibility |
+|---|---|
+| Frontend | Next.js application, UI, student dashboard, and API integration |
+| Backend (this repository) | NestJS REST APIs, authentication, database operations, and application logic |
+
+**Frontend Repository:** [LU Connect – Frontend](https://github.com/abhishekpathak4860/lu-connect.git)
+
+The frontend communicates with this backend through REST APIs.
+
+## Features
+
+- Student authentication and profile management
+- Admin/TPC authentication and management
+- Job postings and applications
+- Internship postings and applications
+- Resume uploads and management
+- AI-powered resume analysis
+- AI-powered job compatibility analysis using Google Gemini
+- Application status management
+- Email-related services and notifications
+
+## Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- npm
+- [Git](https://git-scm.com/)
+- PostgreSQL database (Neon or another PostgreSQL provider)
+
+### 1. Clone the Repository
 
 ```bash
-$ npm install
-# install prisma CLI globally if you use it:
-$ npm install -g prisma
+git clone https://github.com/abhishekpathak4860/lu-connect-backend.git
+cd lu-connect
 ```
 
-### Database configuration
-
-This project uses Prisma ORM with a PostgreSQL database. 1. Create a `.env` file in the backend folder (copy `.env.example` if available) and set `DATABASE_URL` plus `JWT_SECRET` and `SUPABASE_URL`/`SUPABASE_ANON_KEY` for resume uploads.
-
-Run the following commands to generate the client and apply migrations:
+### 2. Install Dependencies
 
 ```bash
-# generate prisma client after editing schema
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory of the backend project.
+
+Add the following environment variables:
+
+```env
+# Database
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+
+# Supabase Storage
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+SUPABASE_ANON_KEY="your_supabase_anon_key"
+
+# Admin / TPC
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="change_this_password"
+
+# Google Gemini
+GEMINI_API_KEY="your_gemini_api_key"
+
+# Frontend
+FRONTEND_URL="http://localhost:3000"
+
+# Application
+NODE_ENV="development"
+
+# JWT Authentication
+JWT_SECRET="replace_with_a_long_random_secret"
+
+# Clerk Student Authentication
+CLERK_JWT_KEY="your_clerk_jwt_public_key_or_pem_value"
+
+# SMTP Configuration
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="your_email@example.com"
+SMTP_PASSWORD="your_smtp_password"
+
+SMTP_FROM_NAME="LU Connect"
+SMTP_FROM_EMAIL="your_email@example.com"
+
+# Resend Email Service
+RESEND_API_KEY="your_resend_api_key"
+RESEND_FROM_EMAIL="noreply@yourdomain.com"
+RESEND_FROM_NAME="LU Connect"
+```
+
+**Important:**
+- Replace all example values with your actual credentials.
+- Use your Neon PostgreSQL connection string for `DATABASE_URL`.
+- Configure Supabase credentials for file storage.
+- Obtain your Gemini API key from [Google AI Studio](https://aistudio.google.com/).
+- Configure Clerk JWT verification using your Clerk application.
+- Configure SMTP or Resend with valid email service credentials.
+- Never commit your `.env` file or expose secret keys publicly.
+
+### 4. Generate Prisma Client
+
+```bash
 npx prisma generate
-
-# create and apply migration (development only)
-npx prisma migrate dev --name init
-
-# optionally seed a dummy admin user
-npm run prisma:seed
 ```
 
-You can add a script to package.json for seeding:
+### 5. Apply Database Migrations
 
-```json
-"scripts": {
-  "prisma:seed": "ts-node prisma/seed.ts"
-}
-```
-
-
-## Compile and run the project
+If you are setting up the project for the first time and the repository contains existing Prisma migrations, run:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npx prisma migrate deploy
 ```
 
-## Run tests
+For development, when creating new migrations after modifying the Prisma schema, use:
 
 ```bash
-# unit tests
-$ npm run test
+npx prisma migrate dev --name migration_name
+```
 
-# e2e tests
-$ npm run test:e2e
+### 6. Start the Backend Server
 
-# test coverage
-$ npm run test:cov
+Development mode:
+
+```bash
+npm run start:dev
+```
+
+The backend will start using the configured application port.
+
+## Running the Application
+
+```bash
+# Development
+npm run start
+
+# Watch mode
+npm run start:dev
+
+# Production build
+npm run build
+
+# Production mode
+npm run start:prod
+```
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# End-to-end tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The backend is deployed independently of the frontend.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+For production deployment:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+1. Configure all required environment variables on your hosting platform.
+2. Set `NODE_ENV` to `production`.
+3. Configure the production PostgreSQL database.
+4. Run Prisma migrations using `npx prisma migrate deploy`.
+5. Build the application using `npm run build`.
+6. Start the application using `npm run start:prod`.
+7. Configure the frontend to use the deployed backend API URL.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+For more information, refer to the [NestJS Deployment Documentation](https://docs.nestjs.com/deployment).
 
-## Resources
+## Useful Resources
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- [NestJS Documentation](https://docs.nestjs.com/)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Clerk Documentation](https://clerk.com/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Google AI Studio](https://aistudio.google.com/)
+- [Resend Documentation](https://resend.com/docs)
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-
-
-
-#debug issues : # debug 14f_1 => means 14 feb issue 1 
+This project is developed as a career platform for University of Lucknow students.
