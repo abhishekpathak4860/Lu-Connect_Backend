@@ -24,7 +24,7 @@ LU Connect is maintained in two separate repositories:
 | Frontend | Next.js application, UI, student dashboard, and API integration |
 | Backend (this repository) | NestJS REST APIs, authentication, database operations, and application logic |
 
-**Frontend Repository:** [LU Connect – Frontend](https://github.com/abhishekpathak4860/lu-connect.git)
+**Frontend Repository:** [LU Connect – Frontend](https://github.com/abhishekpathak4860/LU-Connect-Frontend.git)
 
 The frontend communicates with this backend through REST APIs.
 
@@ -54,7 +54,7 @@ Make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/abhishekpathak4860/lu-connect-backend.git
+git clone https://github.com/abhishekpathak4860/Lu-Connect_Backend.git
 cd lu-connect
 ```
 
